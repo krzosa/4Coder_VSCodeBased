@@ -1,0 +1,10 @@
+custom/
+backup/
+
+*.dll
+*.txt
+*.pdb
+*.exe
+*.rdbg
+
+project.4coder
