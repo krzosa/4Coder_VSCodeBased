@@ -1,4 +1,4 @@
-Just a casual 2000 line C++ source file, the code is very bad and unpolished, probably lots of bugs, but it works well, proceed with caution.
+The code is very bad and unpolished, probably lots of bugs, but it works well for me, proceed with caution.
 
 ### How to build
 
