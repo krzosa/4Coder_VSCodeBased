@@ -1,1 +1,1 @@
-custom\bin\buildsuper_x64-win.bat 4coder_KKrz.cpp %1
+custom\bin\buildsuper_x64-win.bat source_code/custom_layer_main.cpp %1
