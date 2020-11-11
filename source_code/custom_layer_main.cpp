@@ -546,7 +546,7 @@ krz_list_all_locations__generic(Application_Links *app, String_Const_u8_Array ne
             AddFlag(must_not_have_flags, StringMatch_LeftSideSloppy);
             AddFlag(must_not_have_flags, StringMatch_RightSideSloppy);
         }
-
+        
         Buffer_ID search_buffer = krz_create_or_switch_to_buffer_and_clear_by_name(app, search_name, target_view);
         print_all_matches_all_buffers(app, needle, must_have_flags, must_not_have_flags, search_buffer);
     }

@@ -1,6 +1,9 @@
 
 struct selected_lines_info
 {
+    i64 cursor_pos;
+    i64 mark_pos;
+
     i64 min_pos;
     i64 max_pos;
     
@@ -16,11 +19,11 @@ get_selected_lines_info(Application_Links *app, View_ID view, Buffer_ID buffer)
 {
     selected_lines_info result;
     
-    i64 cursor_pos = view_get_cursor_pos(app, view);
-	i64 mark_pos = view_get_mark_pos(app, view);
+    result.cursor_pos = view_get_cursor_pos(app, view);
+	result.mark_pos = view_get_mark_pos(app, view);
     
-	result.min_pos = Min(cursor_pos, mark_pos);
-	result.max_pos = Max(cursor_pos, mark_pos);
+	result.min_pos = Min(result.cursor_pos, result.mark_pos);
+	result.max_pos = Max(result.cursor_pos, result.mark_pos);
     
     result.min_line = get_line_number_from_pos(app, buffer, result.min_pos);
     result.max_line = get_line_number_from_pos(app, buffer, result.max_pos);
@@ -256,30 +259,7 @@ CUSTOM_DOC("If the mouse left button is pressed, sets the cursor position to the
 }
 
 // --------- Mouse fix (for bottom bar) and select on click --------- //
-
-
-enum enum_comment
-{
-    NO_COMMENT,
-    COMMENT_WITH_SPACE,
-    COMMENT_WITHOUT_SPACE,
-};
-
-function enum_comment
-krz_c_line_comment_starts_at_position(Application_Links *app, Buffer_ID buffer, i64 pos){
-    enum_comment alread_has_comment = NO_COMMENT;
-    u8 check_buffer[3];
-    
-    if (buffer_read_range(app, buffer, Ii64(pos, pos + 3), check_buffer)){
-        if (check_buffer[0] == '/' && check_buffer[1] == '/' && check_buffer[2] == ' '){
-            alread_has_comment = COMMENT_WITH_SPACE;
-        }
-        else if (check_buffer[0] == '/' && check_buffer[1] == '/'){
-            alread_has_comment = COMMENT_WITHOUT_SPACE;
-        }
-    }
-    return(alread_has_comment);
-}
+// ------------------------------------------------------------------ //
 
 CUSTOM_COMMAND_SIG(krz_comment_lines_toggle)
 CUSTOM_DOC("Turns uncommented lines into commented lines and vice versa for comments starting with '//'.")
@@ -289,38 +269,28 @@ CUSTOM_DOC("Turns uncommented lines into commented lines and vice versa for comm
     History_Group group = history_group_begin(app, buffer);
     
     selected_lines_info selection = get_selected_lines_info(app, view, buffer);
+    // if there is a comment on selection start
+    // we skip adding new comments and vice versa if there is no comment
+    b32 comment_on_start_selection = c_line_comment_starts_at_position(app, buffer, selection.mark_pos);
+    
     
     i64 number_of_lines = selection.max_line - selection.min_line + 1;
     
     for(i64 i = 0; i < number_of_lines; i++){
         i64 current_line = selection.min_line + i;
-        
-        i64 pos = get_line_start_pos(app, buffer, current_line);
-        
-#if 1
+        i64 pos = get_pos_past_lead_whitespace_from_line_number(app, buffer, current_line);
         b32 comment = c_line_comment_starts_at_position(app, buffer, pos);
-        if(comment)
+        if(comment_on_start_selection && comment)
         {
             buffer_replace_range(app, buffer, Ii64(pos, pos + 2), string_u8_empty);
         }
-        else
+        else if(!comment_on_start_selection && !comment)
         {
-            buffer_replace_range(app, buffer, Ii64(pos), string_u8_litexpr("//"));
-        }
-#else
-        enum_comment already_has_comment = krz_c_line_comment_starts_at_position(app, buffer, pos);
-        if (already_has_comment == COMMENT_WITHOUT_SPACE){
-            buffer_replace_range(app, buffer, Ii64(pos, pos + 2), string_u8_empty);
-        }
-        else if(already_has_comment == COMMENT_WITH_SPACE){
-            buffer_replace_range(app, buffer, Ii64(pos, pos + 3), string_u8_empty);
-        }
-        else{
             buffer_replace_range(app, buffer, Ii64(pos), string_u8_litexpr("// "));
         }
-#endif
     }
     
     history_group_end(group);
 }
+
 

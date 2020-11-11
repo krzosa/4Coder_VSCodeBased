@@ -8,3 +8,16 @@ backup/
 *.rdbg
 
 project.4coder
+build.bat
+fonts/liberation-mono.ttf
+run.bat
+themes/theme-4coder.4coder
+themes/theme-handmade-hero.4coder
+themes/theme-hjortshoej.4coder
+themes/theme-midnight.4coder
+themes/theme-stb-dark.4coder
+themes/theme-stb.4coder
+themes/theme-strange.4coder
+themes/theme-sunlight.4coder
+themes/theme-twilight.4coder
+themes/theme-wombat.4coder
