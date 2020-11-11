@@ -2,14 +2,16 @@
 4coder_default_bidings.cpp - Supplies the default bindings used for default 4coder behavior.
 */
 
-/* TODO:
-    * Some ways to navigate through the mess
-    * Fix move lines at the edge of buffer
-    * find all @ find all TODOs etc.
-    * Close lister with control W
- */
+/***********************************************************************************
+*
+*   TODO:
+    *   Some ways to navigate through the mess
+    *   Fix move lines at the edge of buffer
+    *   find all @ find all TODOs etc.
+    *   Close lister with control W
+*
+************************************************************************************/
 
-// TOP
 #define FCODER_MODE_ORIGINAL 0
 #define BIG_CURSOR 1
 #define HIGHLIGH_SELECTION_MATCH 1
@@ -73,6 +75,8 @@ CUSTOM_ID( colors, vertical_scope_annotation_highlight );
 #include "primitive_highlight.cpp"
 #include "vertical_scope_annotations.cpp"
 #include "selection_based_cursor_improvements.cpp"
+#include "snippets.cpp"
+
 
 function void
 krz_isearch_case_mode_aware(Application_Links *app, Scan_Direction start_scan, i64 first_pos,
@@ -642,6 +646,10 @@ krz_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id,
         &character_predicate_alpha_numeric_underscore_utf8;
     
     String_Match_List matches = buffer_find_all_matches(app, scratch, buffer,  0, visible_range, selected_string, pred, Scan_Forward);
+    String_Match_Flag must_have_flags = StringMatch_CaseSensitive;
+    String_Match_Flag must_not_have_flags = 0;
+    string_match_list_filter_flags(&matches, must_have_flags, must_not_have_flags);
+
     for (String_Match *node = matches.first; node != 0; node = node->next){
         draw_character_block(app, text_layout_id, 
                              node->range, 0, 
@@ -984,12 +992,6 @@ krz_boundary_inside_right_paren(Application_Links *app, Buffer_ID buffer, Side s
     return(result);
 }
 
-CUSTOM_COMMAND_SIG(write_comment_section)
-{
-    write_string(app, string_u8_litexpr("//------------------------- -------------------------\\\\"));
-}
-
-
 CUSTOM_COMMAND_SIG(write_warning)
 {
     write_named_comment_string(app, "WARNING");
@@ -1051,41 +1053,6 @@ CUSTOM_DOC("Queries the user for a needle and string. Replaces all occurences of
     global_history_edit_group_end(app);
 }
 
-// FIXME: Very jump commands are very Buggy
-// Idea: maybe find all "@" symbols in a file / project, these are bookmarks
-
-struct jump_info
-{
-    i64 pos;
-    Buffer_ID buffer;
-};
-global jump_info jump_table[4] = {};
-
-#define setup_jump_command(number) \
-CUSTOM_COMMAND_SIG(set_jump_table_##number) \
-{ \
-View_ID view = get_active_view(app, Access_ReadWriteVisible); \
-Buffer_ID buffer = view_get_buffer(app, view, Access_ReadWriteVisible); \
-i64 cursor_pos = view_get_cursor_pos(app, view); \
-jump_table[number-1] = {cursor_pos, buffer}; \
-} \
-\
-CUSTOM_COMMAND_SIG(goto_jump_table_##number) \
-{ \
-View_ID view = get_active_view(app, Access_ReadWriteVisible); \
-if(jump_table[number-1].buffer != 0){ \
-jump_to_location(app, view, jump_table[number-1].buffer, jump_table[number-1].pos); \
-select_scope(app, view, {jump_table[number-1].pos, jump_table[number-1].pos}); \
-} \
-} \
-
-// expands to goto_jump_table_1
-//          and set_jump_table_1
-setup_jump_command(1)
-setup_jump_command(2)
-setup_jump_command(3)
-setup_jump_command(4)
-
 // Modified for F5 to F8 keys
 // index 1 == F5
 CUSTOM_COMMAND_SIG(krz_project_fkey_command)
@@ -1110,6 +1077,21 @@ CUSTOM_COMMAND_SIG(krz_project_fkey_command)
         if (got_ind){
             exec_project_fkey_command(app, ind);
         }
+    }
+}
+
+CUSTOM_UI_COMMAND_SIG(krz_snippet_lister)
+CUSTOM_DOC("Opens a snippet lister for inserting whole pre-written snippets of text.")
+{
+    View_ID view = get_this_ctx_view(app, Access_ReadWrite);
+    if (view != 0){
+        Snippet *snippet = get_snippet_from_user(app, krz_snippets,
+                                                 ArrayCount(krz_snippets),
+                                                 "Snippet:");
+        
+        Buffer_ID buffer = view_get_buffer(app, view, Access_ReadWriteVisible);
+        i64 pos = view_get_cursor_pos(app, view);
+        write_snippet(app, view, buffer, pos, snippet);
     }
 }
 

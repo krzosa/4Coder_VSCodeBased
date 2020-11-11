@@ -78,18 +78,6 @@ ParentMap(mapid_global);
 
 BindTextInput(write_text_input);
 
-Bind(set_jump_table_1, KeyCode_F1, KeyCode_Shift);
-Bind(goto_jump_table_1, KeyCode_F1);
-
-Bind(set_jump_table_2, KeyCode_F2, KeyCode_Shift);
-Bind(goto_jump_table_2, KeyCode_F2);
-
-Bind(set_jump_table_3, KeyCode_F3, KeyCode_Shift);
-Bind(goto_jump_table_3, KeyCode_F3);
-
-Bind(set_jump_table_4, KeyCode_F4, KeyCode_Shift);
-Bind(goto_jump_table_4, KeyCode_F4);
-
 // MOUSE
 BindMouse(krz_click_set_cursor_and_mark, MouseCode_Left);
 BindMouseRelease(click_set_cursor, MouseCode_Left);
@@ -184,15 +172,18 @@ Bind(if_read_only_goto_position_same_panel, KeyCode_Return, KeyCode_Shift);
     Bind(open_long_braces_break,     KeyCode_RightBracket, KeyCode_Control, KeyCode_Shift);
 }
 
+// WORD COMPLETE
+Bind(word_complete,              KeyCode_Tab);
+Bind(word_complete_drop_down,    KeyCode_Space, KeyCode_Control);
+Bind(krz_snippet_lister,    KeyCode_Space, KeyCode_Shift);
+
 // -------------------------------------------------------------- //
 
 SelectMap(mapid_code);
 ParentMap(mapid_file);
 BindTextInput(write_text_and_auto_indent);
 
-// WORD COMPLETE
-Bind(word_complete,              KeyCode_Tab);
-Bind(word_complete_drop_down,    KeyCode_Space, KeyCode_Control);
+
 
 
 // NOT USED MUCH
@@ -215,5 +206,4 @@ Bind(jump_to_definition_at_cursor, KeyCode_Q, KeyCode_Control);
 // COMMENTS
 Bind(krz_comment_lines_toggle,        KeyCode_ForwardSlash, KeyCode_Control);
 Bind(write_block,                KeyCode_ForwardSlash, KeyCode_Control, KeyCode_Shift);
-Bind(write_comment_section, KeyCode_BackwardSlash, KeyCode_Control);
 #endif
