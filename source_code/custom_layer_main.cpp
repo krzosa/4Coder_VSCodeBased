@@ -5,6 +5,7 @@
 /***********************************************************************************
 *
 *   TODO:
+*   QueryReplace in all buffers where it asks you about every replace
     *   Some ways to navigate through the mess
     *   Fix move lines at the edge of buffer
     *   find all @ find all TODOs etc.
@@ -15,36 +16,7 @@
 #define FCODER_MODE_ORIGINAL 0
 #define BIG_CURSOR 1
 #define HIGHLIGH_SELECTION_MATCH 1
-
-#define DARK0H	0xff1d2021
-#define DARK0	0xff282828
-#define DARK0S	0xff32302f
-#define DARK1	0xff3c3836
-#define DARK2	0xff504945
-#define DARK3	0xff665c54
-#define DARK4	0xff7c6f64
-#define LIGHT0H	0xfff9f5d7
-#define LIGHT0	0xfffbf1c7
-#define LIGHT0S	0xfff2e5bc
-#define LIGHT1	0xffebdbb2
-#define LIGHT2	0xffd5c4a1
-#define LIGHT3	0xffbdae93
-#define LIGHT4	0xffa89984
-#define GRAY	0xff928374
-#define RED0	0xfffb4934
-#define RED1	0xff9d0006
-#define GREEN0	0xffb8bb26
-#define GREEN1	0xff79740e
-#define YELLOW0	0xfffabd2f
-#define YELLOW1	0xffb57614
-#define BLUE0	0xff83a598
-#define BLUE1	0xff076678
-#define PURPLE0	0xffd3869b
-#define PURPLE1	0xff8f3f71
-#define AQUA0	0xff8ec07c
-#define AQUA1	0xff427b58
-#define ORANGE0	0xfffe8019
-#define ORANGE1	0xffaf3a03
+#define BAR_POSITION_BOT 1 // 0 for top
 
 #if !defined(FCODER_DEFAULT_BINDINGS_CPP)
 #define FCODER_DEFAULT_BINDINGS_CPP
@@ -76,6 +48,8 @@ CUSTOM_ID( colors, vertical_scope_annotation_highlight );
 #include "vertical_scope_annotations.cpp"
 #include "selection_based_cursor_improvements.cpp"
 #include "snippets.cpp"
+#include "todo.cpp"
+#include "painter_mode.cpp"
 
 
 function void
@@ -498,94 +472,6 @@ CUSTOM_COMMAND_SIG(list_all_locations_of_identifier_or_selection)
     }
 }
 
-// Create a new clear buffer in the current view (without switching to the sidepanel)
-function Buffer_ID
-krz_create_or_switch_to_buffer_and_clear_by_name(Application_Links *app, String_Const_u8 name_string, View_ID default_target_view){
-    Buffer_ID search_buffer = get_buffer_by_name(app, name_string, Access_Always);
-    if (search_buffer != 0){
-        buffer_set_setting(app, search_buffer, BufferSetting_ReadOnly, true);
-        
-        View_ID target_view = default_target_view;
-        
-        View_ID view_with_buffer_already_open = get_first_view_with_buffer(app, search_buffer);
-        if (view_with_buffer_already_open != 0){
-            target_view = view_with_buffer_already_open;
-            // TODO(allen): there needs to be something like
-            // view_exit_to_base_context(app, target_view);
-            //view_end_ui_mode(app, target_view);
-        }
-        else{
-            view_set_buffer(app, target_view, search_buffer, 0);
-        }
-        view_set_active(app, target_view);
-        
-        clear_buffer(app, search_buffer);
-        buffer_send_end_signal(app, search_buffer);
-    }
-    else{
-        search_buffer = create_buffer(app, name_string, BufferCreate_AlwaysNew);
-        buffer_set_setting(app, search_buffer, BufferSetting_Unimportant, true);
-        buffer_set_setting(app, search_buffer, BufferSetting_ReadOnly, true);
-#if 0
-        buffer_set_setting(app, search_buffer, BufferSetting_WrapLine, false);
-#endif
-        view_set_buffer(app, default_target_view, search_buffer, 0);
-        // view_set_active(app, default_target_view);
-    }
-    
-    return(search_buffer);
-}
-
-
-internal void
-krz_list_all_locations__generic(Application_Links *app, String_Const_u8_Array needle, List_All_Locations_Flag flags){
-    if (needle.count > 0){
-        View_ID target_view = get_active_view(app, Access_Always);
-        String_Match_Flag must_have_flags = 0;
-        String_Match_Flag must_not_have_flags = 0;
-        if (HasFlag(flags, ListAllLocationsFlag_CaseSensitive)){
-            AddFlag(must_have_flags, StringMatch_CaseSensitive);
-        }
-        if (!HasFlag(flags, ListAllLocationsFlag_MatchSubstring)){
-            AddFlag(must_not_have_flags, StringMatch_LeftSideSloppy);
-            AddFlag(must_not_have_flags, StringMatch_RightSideSloppy);
-        }
-        
-        Buffer_ID search_buffer = krz_create_or_switch_to_buffer_and_clear_by_name(app, search_name, target_view);
-        print_all_matches_all_buffers(app, needle, must_have_flags, must_not_have_flags, search_buffer);
-    }
-}
-
-internal void
-krz_list_all_locations__generic(Application_Links *app, String_Const_u8 needle, List_All_Locations_Flag flags){
-    if (needle.size != 0){
-        String_Const_u8_Array array = {&needle, 1};
-        list_all_locations__generic(app, array, flags);
-    }
-}
-
-CUSTOM_COMMAND_SIG(TODOs_list)
-CUSTOM_DOC("Todos lister")
-{
-    Scratch_Block scratch(app);
-    String_Const_u8 query = push_u8_stringf(scratch, "TODO");
-    View_ID original_view = get_active_view(app, Access_Always);
-    Buffer_ID search_buffer = create_or_switch_to_buffer_and_clear_by_name(app, query, original_view);
-    print_all_matches_all_buffers(app, query, StringMatch_CaseSensitive, 0, search_buffer);
-    
-    Heap *heap = &global_heap;
-    View_ID view = get_active_view(app, Access_Always);
-    Buffer_ID buffer = view_get_buffer(app, view, Access_Always);
-    Marker_List *list = get_or_make_list_for_buffer(app, heap, buffer);
-    
-    if (list != 0){
-        view_set_active(app, original_view);
-        Jump_Lister_Result jump = get_jump_index_from_user(app, list, "TODOs:");
-        jump_to_jump_lister_result(app, view, list, &jump);
-    }
-    
-}
-
 function void
 krz_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id,
                   Buffer_ID buffer, Text_Layout_ID text_layout_id,
@@ -649,7 +535,7 @@ krz_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id,
     String_Match_Flag must_have_flags = StringMatch_CaseSensitive;
     String_Match_Flag must_not_have_flags = 0;
     string_match_list_filter_flags(&matches, must_have_flags, must_not_have_flags);
-
+    
     for (String_Match *node = matches.first; node != 0; node = node->next){
         draw_character_block(app, text_layout_id, 
                              node->range, 0, 
@@ -815,16 +701,16 @@ krz_render_caller(Application_Links *app, Frame_Info frame_info, View_ID view_id
     // NOTE(allen): file bar
     b64 showing_file_bar = false;
     if (view_get_setting(app, view_id, ViewSetting_ShowFileBar, &showing_file_bar) && showing_file_bar){
-        
-        // Rect_f32_Pair pair = layout_file_bar_on_top(region, line_height);
-        // krz_draw_file_bar(app, view_id, buffer, face_id, pair.min);
-        // region = pair.max;
-        
+        #if BAR_POSITION_BOT
         // mouse fix in krz_fix_view_pos_from_xy
         Rect_f32_Pair pair = layout_file_bar_on_bot(region, line_height);
         krz_draw_file_bar(app, view_id, buffer, face_id, pair.max);
-        
         region = pair.min;
+        #else
+        Rect_f32_Pair pair = layout_file_bar_on_top(region, line_height);
+        krz_draw_file_bar(app, view_id, buffer, face_id, pair.min);
+        region = pair.max;
+        #endif
     }
     
     Buffer_Scroll scroll = view_get_buffer_scroll(app, view_id);
@@ -1095,6 +981,30 @@ CUSTOM_DOC("Opens a snippet lister for inserting whole pre-written snippets of t
     }
 }
 
+CUSTOM_UI_COMMAND_SIG(painter_mode_switch)
+CUSTOM_DOC("Painter Mode Switch !")
+{
+    painter_mode = !painter_mode;
+}
+
+CUSTOM_UI_COMMAND_SIG(painter_mode_clear)
+CUSTOM_DOC("Clear the paint")
+{
+    brush_strokes_size = 0;
+}
+
+CUSTOM_UI_COMMAND_SIG(painter_mode_brush_size_lower)
+CUSTOM_DOC("Brush size lower")
+{
+    if (brush_size > brush_size_control) brush_size -= brush_size_control;
+}
+
+CUSTOM_UI_COMMAND_SIG(painter_mode_brush_size_upper)
+CUSTOM_DOC("Brush size upper")
+{
+    brush_size += brush_size_control;
+}
+
 void
 custom_layer_init(Application_Links *app){
     Thread_Context *tctx = get_thread_context(app);
@@ -1117,6 +1027,9 @@ custom_layer_init(Application_Links *app){
     
     set_custom_hook(app, HookID_RenderCaller, krz_render_caller);
     set_custom_hook(app, HookID_BufferRegion, krz_buffer_region);
+    set_custom_hook(app, HookID_WholeScreenRenderCaller, painter_whole_screen_render_caller);
+
+    brush_strokes = (brush_in_time *)heap_allocate(&global_heap, sizeof(brush_in_time) * max_size_of_array);
 #include "key_bindings.cpp"
 }
 

@@ -59,12 +59,20 @@ Bind(case_sensitive_mode_toggle, KeyCode_C, KeyCode_Alt);
 
 Bind(exit_4coder,          KeyCode_F4, KeyCode_Alt);
 
-Bind(krz_project_fkey_command, KeyCode_F5);
-Bind(krz_project_fkey_command, KeyCode_F6);
-Bind(krz_project_fkey_command, KeyCode_F7);
-Bind(krz_project_fkey_command, KeyCode_F8);
+// Bind(krz_project_fkey_command, KeyCode_F5);
+// Bind(krz_project_fkey_command, KeyCode_F6);
+// Bind(krz_project_fkey_command, KeyCode_F7);
+// Bind(krz_project_fkey_command, KeyCode_F8);
+Bind(project_fkey_command, KeyCode_F1);
+Bind(project_fkey_command, KeyCode_F2);
+Bind(project_fkey_command, KeyCode_F3);
+Bind(project_fkey_command, KeyCode_F4);
 
 Bind(TODOs_list, KeyCode_F1, KeyCode_Control);
+Bind(painter_mode_switch, KeyCode_F5);
+Bind(painter_mode_clear, KeyCode_F6);
+Bind(painter_mode_brush_size_lower, KeyCode_F7);
+Bind(painter_mode_brush_size_upper, KeyCode_F8);
 Bind(split_fullscreen_mode, KeyCode_F12);
 
 Bind(load_theme_current_buffer, KeyCode_T, KeyCode_Control, KeyCode_Shift, KeyCode_Alt);
@@ -175,7 +183,7 @@ Bind(if_read_only_goto_position_same_panel, KeyCode_Return, KeyCode_Shift);
 // WORD COMPLETE
 Bind(word_complete,              KeyCode_Tab);
 Bind(word_complete_drop_down,    KeyCode_Space, KeyCode_Control);
-Bind(krz_snippet_lister,    KeyCode_Space, KeyCode_Shift);
+Bind(krz_snippet_lister,         KeyCode_Tick, KeyCode_Control);
 
 // -------------------------------------------------------------- //
 
