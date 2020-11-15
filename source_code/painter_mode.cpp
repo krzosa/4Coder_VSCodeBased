@@ -45,6 +45,14 @@ painter_whole_screen_render_caller(Application_Links *app, Frame_Info frame_info
     {
         for(i32 j = 1; j < brush_strokes_size; j++)
         {
+            if(brush_strokes[j-1].mouse_l == 0 || brush_strokes[j].mouse_l == 1)
+            {
+                Rect_f32 rect = {(f32)brush_strokes[j].p.x - (brush_size / 2), 
+                    (f32)brush_strokes[j].p.y - (brush_size / 2), 
+                    (f32)brush_strokes[j].p.x + brush_size / 2, 
+                    (f32)brush_strokes[j].p.y + brush_size / 2};
+                draw_rectangle_fcolor(app, rect, 10.f, fcolor_id(defcolor_text_default));
+            }
             if(brush_strokes[j-1].mouse_l == false || brush_strokes[j].mouse_l == false)
                 continue;
 
