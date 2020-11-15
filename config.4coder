@@ -61,7 +61,7 @@ indent_width = 4;
 default_tab_width = 4;
 
 // Theme
-default_theme_name = "theme-krz-gruvbox";
+default_theme_name = "theme-krz";
 highlight_line_at_cursor = true;
 
 // Font

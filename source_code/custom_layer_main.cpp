@@ -46,10 +46,10 @@ CUSTOM_ID( colors, vertical_scope_annotation_highlight );
 
 #include "primitive_highlight.cpp"
 #include "vertical_scope_annotations.cpp"
+#include "painter_mode.cpp"
 #include "selection_based_cursor_improvements.cpp"
 #include "snippets.cpp"
 #include "todo.cpp"
-#include "painter_mode.cpp"
 
 
 function void
@@ -701,16 +701,16 @@ krz_render_caller(Application_Links *app, Frame_Info frame_info, View_ID view_id
     // NOTE(allen): file bar
     b64 showing_file_bar = false;
     if (view_get_setting(app, view_id, ViewSetting_ShowFileBar, &showing_file_bar) && showing_file_bar){
-        #if BAR_POSITION_BOT
+#if BAR_POSITION_BOT
         // mouse fix in krz_fix_view_pos_from_xy
         Rect_f32_Pair pair = layout_file_bar_on_bot(region, line_height);
         krz_draw_file_bar(app, view_id, buffer, face_id, pair.max);
         region = pair.min;
-        #else
+#else
         Rect_f32_Pair pair = layout_file_bar_on_top(region, line_height);
         krz_draw_file_bar(app, view_id, buffer, face_id, pair.min);
         region = pair.max;
-        #endif
+#endif
     }
     
     Buffer_Scroll scroll = view_get_buffer_scroll(app, view_id);
@@ -981,29 +981,31 @@ CUSTOM_DOC("Opens a snippet lister for inserting whole pre-written snippets of t
     }
 }
 
-CUSTOM_UI_COMMAND_SIG(painter_mode_switch)
+CUSTOM_COMMAND_SIG(painter_mode_switch)
 CUSTOM_DOC("Painter Mode Switch !")
 {
     painter_mode = !painter_mode;
 }
 
-CUSTOM_UI_COMMAND_SIG(painter_mode_clear)
+CUSTOM_COMMAND_SIG(painter_mode_clear)
 CUSTOM_DOC("Clear the paint")
 {
     brush_strokes_size = 0;
 }
 
-CUSTOM_UI_COMMAND_SIG(painter_mode_brush_size_lower)
+CUSTOM_COMMAND_SIG(painter_mode_brush_size_lower)
 CUSTOM_DOC("Brush size lower")
 {
     if (brush_size > brush_size_control) brush_size -= brush_size_control;
 }
 
-CUSTOM_UI_COMMAND_SIG(painter_mode_brush_size_upper)
+CUSTOM_COMMAND_SIG(painter_mode_brush_size_upper)
 CUSTOM_DOC("Brush size upper")
 {
     brush_size += brush_size_control;
 }
+
+
 
 void
 custom_layer_init(Application_Links *app){
@@ -1028,7 +1030,7 @@ custom_layer_init(Application_Links *app){
     set_custom_hook(app, HookID_RenderCaller, krz_render_caller);
     set_custom_hook(app, HookID_BufferRegion, krz_buffer_region);
     set_custom_hook(app, HookID_WholeScreenRenderCaller, painter_whole_screen_render_caller);
-
+    
     brush_strokes = (brush_in_time *)heap_allocate(&global_heap, sizeof(brush_in_time) * max_size_of_array);
 #include "key_bindings.cpp"
 }

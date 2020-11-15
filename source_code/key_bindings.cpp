@@ -206,6 +206,14 @@ Bind(delete_current_scope,       KeyCode_Minus, KeyCode_Alt);
 Bind(if0_off,                    KeyCode_I, KeyCode_Alt);
 // Bind(open_matching_file_cpp,     KeyCode_2, KeyCode_Alt);
 Bind(write_zero_struct,          KeyCode_0, KeyCode_Control);
+Bind(write_paren_on_selection_left,          KeyCode_9, KeyCode_Shift);
+Bind(write_paren_on_selection_right,          KeyCode_0, KeyCode_Shift);
+Bind(write_curly_brace_on_selection_left,          KeyCode_LeftBracket, KeyCode_Shift);
+Bind(write_curly_brace_on_selection_right,          KeyCode_RightBracket, KeyCode_Shift);
+Bind(write_bracket_on_selection_left,          KeyCode_LeftBracket);
+Bind(write_bracket_on_selection_right,          KeyCode_RightBracket);
+Bind(write_quote_on_selection,          KeyCode_Quote, KeyCode_Shift);
+Bind(write_single_quote_on_selection,          KeyCode_Quote);
 
 // JUMP TO DEFINITION
 Bind(open_file_in_quotes,          KeyCode_A, KeyCode_Control);

@@ -2,7 +2,7 @@ struct selected_lines_info
 {
     i64 cursor_pos;
     i64 mark_pos;
-
+    
     i64 min_pos;
     i64 max_pos;
     
@@ -222,13 +222,15 @@ global bool is_selected;
 CUSTOM_COMMAND_SIG(krz_click_set_cursor_and_mark)
 CUSTOM_DOC("Sets the cursor position and mark to the mouse position.")
 {
+    if(painter_mode) return;
+    
     View_ID view = get_active_view(app, Access_ReadVisible);
     Mouse_State mouse = get_mouse_state(app);
-    #if BAR_POSITION_BOT
+#if BAR_POSITION_BOT
     i64 pos = krz_fix_view_pos_from_xy(app, view, V2f32(mouse.p));
-    #else
+#else
     i64 pos = view_pos_from_xy(app, view, V2f32(mouse.p));
-    #endif
+#endif
     
     Buffer_ID buffer = view_get_buffer(app, view, Access_ReadVisible);
     
@@ -242,14 +244,16 @@ CUSTOM_DOC("Sets the cursor position and mark to the mouse position.")
 CUSTOM_COMMAND_SIG(krz_click_set_cursor_if_lbutton)
 CUSTOM_DOC("If the mouse left button is pressed, sets the cursor position to the mouse position.")
 {
+    if(painter_mode) return;
+    
     View_ID view = get_active_view(app, Access_ReadVisible);
     Mouse_State mouse = get_mouse_state(app);
     if (mouse.l){
-        #if BAR_POSITION_BOT
+#if BAR_POSITION_BOT
         i64 pos = krz_fix_view_pos_from_xy(app, view, V2f32(mouse.p));
-        #else
+#else
         i64 pos = view_pos_from_xy(app, view, V2f32(mouse.p));
-        #endif
+#endif
         view_set_cursor_and_preferred_x(app, view, seek_pos(pos));
         
         // NOTE: Select on click yeee
@@ -298,4 +302,81 @@ CUSTOM_DOC("Turns uncommented lines into commented lines and vice versa for comm
     history_group_end(group);
 }
 
+// 1 == left to right or 0 ==right to left 
+function void
+enclose_selection(Application_Links *app, String_Const_u8 left, String_Const_u8 right, b32 left_to_right){
+    View_ID view = get_active_view(app, Access_ReadWriteVisible);
+    Buffer_ID buffer = view_get_buffer(app, view, Access_ReadWriteVisible);
+    selected_lines_info selection = get_selected_lines_info(app, view, buffer);
+    History_Group group = history_group_begin(app, buffer);
+    
+    if(left_to_right){
+        buffer_replace_range(app, buffer, Ii64(selection.min_pos), left);
+        if(selection.cursor_pos != selection.mark_pos){
+            buffer_replace_range(app, buffer, Ii64(selection.max_pos + right.size), right);
+        }
+        view_set_cursor_and_preferred_x(app, view, seek_pos(selection.cursor_pos + right.size));
+    } else {
+        buffer_replace_range(app, buffer, Ii64(selection.max_pos), right);
+        if(selection.cursor_pos != selection.mark_pos){
+            buffer_replace_range(app, buffer, Ii64(selection.min_pos), left);
+        }
+        view_set_cursor_and_preferred_x(app, view, seek_pos(selection.cursor_pos + 1));
+    }
+    
+    history_group_end(group);
+}
 
+CUSTOM_COMMAND_SIG(write_paren_on_selection_left)
+CUSTOM_DOC("Encloses the selection with parenthesis")
+{
+    enclose_selection(app, string_u8_litexpr("("), string_u8_litexpr(")"), true);
+}
+
+CUSTOM_COMMAND_SIG(write_paren_on_selection_right)
+CUSTOM_DOC("Encloses the selection with parenthesis")
+{
+    enclose_selection(app, string_u8_litexpr("("), string_u8_litexpr(")"), false);
+}
+
+CUSTOM_COMMAND_SIG(write_curly_brace_on_selection_left)
+CUSTOM_DOC("Encloses the selection with curly_brace")
+{
+    enclose_selection(app, string_u8_litexpr("{"), string_u8_litexpr("}"), true);
+}
+
+CUSTOM_COMMAND_SIG(write_curly_brace_on_selection_right)
+CUSTOM_DOC("Encloses the selection with curly_brace")
+{
+    enclose_selection(app, string_u8_litexpr("{"), string_u8_litexpr("}"), false);
+}
+
+CUSTOM_COMMAND_SIG(write_bracket_on_selection_left)
+CUSTOM_DOC("Encloses the selection with bracket")
+{
+    enclose_selection(app, string_u8_litexpr("["), string_u8_litexpr("]"), true);
+}
+
+CUSTOM_COMMAND_SIG(write_bracket_on_selection_right)
+CUSTOM_DOC("Encloses the selection with bracket")
+{
+    enclose_selection(app, string_u8_litexpr("["), string_u8_litexpr("]"), false);
+}
+
+CUSTOM_COMMAND_SIG(write_quote_on_selection_right)
+CUSTOM_DOC("Encloses the selection with quote")
+{
+    enclose_selection(app, string_u8_litexpr("["), string_u8_litexpr("]"), false);
+}
+
+CUSTOM_COMMAND_SIG(write_quote_on_selection)
+CUSTOM_DOC("Encloses the selection with quote")
+{
+    enclose_selection(app, string_u8_litexpr("\""), string_u8_litexpr("\""), true);
+}
+
+CUSTOM_COMMAND_SIG(write_single_quote_on_selection)
+CUSTOM_DOC("Encloses the selection with single_quote")
+{
+    enclose_selection(app, string_u8_litexpr("\'"), string_u8_litexpr("\'"), true);
+}

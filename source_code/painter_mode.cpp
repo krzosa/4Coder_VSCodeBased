@@ -4,7 +4,7 @@ struct brush_in_time
     Vec2_i32 p;
     b8 mouse_l;
 };
-#define max_size_of_array 20000
+#define max_size_of_array 10000
 global b32 painter_mode = false;
 global brush_in_time *brush_strokes;
 global i64 brush_strokes_size;
