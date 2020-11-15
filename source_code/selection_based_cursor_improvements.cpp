@@ -280,7 +280,7 @@ CUSTOM_DOC("Turns uncommented lines into commented lines and vice versa for comm
     selected_lines_info selection = get_selected_lines_info(app, view, buffer);
     // if there is a comment on selection start
     // we skip adding new comments and vice versa if there is no comment
-    b32 comment_on_start_selection = c_line_comment_starts_at_position(app, buffer, selection.mark_pos);
+    // b32 comment_on_start_selection = c_line_comment_starts_at_position(app, buffer, selection.cursor_pos);
     
     
     i64 number_of_lines = selection.max_line - selection.min_line + 1;
@@ -289,11 +289,11 @@ CUSTOM_DOC("Turns uncommented lines into commented lines and vice versa for comm
         i64 current_line = selection.min_line + i;
         i64 pos = get_pos_past_lead_whitespace_from_line_number(app, buffer, current_line);
         b32 comment = c_line_comment_starts_at_position(app, buffer, pos);
-        if(comment_on_start_selection && comment)
+        if(comment)
         {
             buffer_replace_range(app, buffer, Ii64(pos, pos + 2), string_u8_empty);
         }
-        else if(!comment_on_start_selection && !comment)
+        else if(!comment)
         {
             buffer_replace_range(app, buffer, Ii64(pos), string_u8_litexpr("// "));
         }
