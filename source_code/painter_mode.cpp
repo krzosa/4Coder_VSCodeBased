@@ -1,4 +1,3 @@
-
 struct brush_in_time
 {
     Vec2_i32 p;
@@ -22,6 +21,9 @@ painter_whole_screen_render_caller(Application_Links *app, Frame_Info frame_info
     Scratch_Block scratch(app);
     
     
+    // Collect an array of points when mouse was clicked
+    // collect the minimum of points when mouse was not clicked
+    // to determine when to stop drawing
     static bool prev_mouse_state;
     if(mouse.l)
     {
@@ -45,6 +47,7 @@ painter_whole_screen_render_caller(Application_Links *app, Frame_Info frame_info
     {
         for(i32 j = 1; j < brush_strokes_size; j++)
         {
+            // Special case for a single dot in the wild
             if(brush_strokes[j-1].mouse_l == 0 || brush_strokes[j].mouse_l == 1)
             {
                 Rect_f32 rect = {(f32)brush_strokes[j].p.x - (brush_size / 2), 
@@ -53,36 +56,38 @@ painter_whole_screen_render_caller(Application_Links *app, Frame_Info frame_info
                     (f32)brush_strokes[j].p.y + brush_size / 2};
                 draw_rectangle_fcolor(app, rect, 10.f, fcolor_id(defcolor_text_default));
             }
+            // Skip if mouse not pressed
             if(brush_strokes[j-1].mouse_l == false || brush_strokes[j].mouse_l == false)
                 continue;
 
-            Vec2_i32 pos1 = brush_strokes[j-1].p;
-            Vec2_i32 pos2 = brush_strokes[j].p;
+            Vec2_i32 minP = brush_strokes[j-1].p;
+            Vec2_i32 maxP = brush_strokes[j].p;
 
+            // Drawing line algorithm, fill every pixel with a rectangle ! ;> 
             bool steep = false; 
-            if (abs(pos1.x-pos2.x) < abs(pos1.y-pos2.y)) 
+            if (abs(minP.x-maxP.x) < abs(minP.y-maxP.y)) 
             {
-                i32 temp = pos1.x;
-                pos1.x = pos1.y;
-                pos1.y = temp;
+                i32 temp = minP.x;
+                minP.x = minP.y;
+                minP.y = temp;
 
-                temp = pos2.x;
-                pos2.x = pos2.y;
-                pos2.y = temp;
+                temp = maxP.x;
+                maxP.x = maxP.y;
+                maxP.y = temp;
                 steep = true; 
             } 
             
-            if(pos1.x > pos2.x)
+            if(minP.x > maxP.x)
             {
-                Vec2_i32 temp = pos1;
-                pos1 = pos2;
-                pos2 = temp;
+                Vec2_i32 temp = minP;
+                minP = maxP;
+                maxP = temp;
             }
 
-            for(i32 x = pos1.x; x < pos2.x; x++)
+            for(i32 x = minP.x; x < maxP.x; x++)
             {
-                f32 t = (x - pos1.x ) / (f32)(pos2.x - pos1.x); 
-                i32 y = (i32)(pos1.y * (1. - t) + pos2.y*t); 
+                f32 t = (x - minP.x ) / (f32)(maxP.x - minP.x); 
+                i32 y = (i32)(minP.y * (1. - t) + maxP.y*t); 
                 Vec2_i32 pos;
                 if(steep)
                 {
