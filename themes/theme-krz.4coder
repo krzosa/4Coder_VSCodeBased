@@ -1,5 +1,6 @@
-DARK0H = 0xff1E221E;
-//DARK0H	= 0xff1d2021;
+//DARK0H = 0xff1E221E; 
+//DARK0H = 0xFF041818; // JBlow green
+DARK0H	= 0xff1d2021;
 DARK0	= 0xff282828;
 DARK0S	= 0xff32302f;
 DARK1	= 0xff3c3836;
@@ -29,23 +30,32 @@ AQUA1	= 0xff427b58;
 ORANGE0	= 0xfffe8019;
 ORANGE1	= 0xffaf3a03;
 
-defcolor_back = DARK0H;
+defcolor_back = DARK0H; // buffer back, bar with buffer info, buffer margin
 defcolor_bar = DARK0H;
+defcolor_base = GRAY; // Buffer bar(top or bottom) text
 defcolor_margin = DARK0H;
 defcolor_margin_hover = 0xFF333333;
 defcolor_margin_active = 0xFF404040;
+
+// lister 
 defcolor_list_item = {defcolor_margin, defcolor_back};
 defcolor_list_item_hover = {defcolor_margin_hover, defcolor_margin};
 defcolor_list_item_active = {defcolor_margin_active, defcolor_margin_active};
-defcolor_cursor = {LIGHT0,LIGHT1};
-defcolor_at_cursor = RED0;
-defcolor_highlight_cursor_line = 0x22666666;
-defcolor_highlight = 0x44fb4934;
+defcolor_pop1 = YELLOW0; // lister text that suggest what kind of lister it is
+
 defcolor_mark = 0xffffffff;
-defcolor_text_default = 0xffb99468;
-defcolor_at_highlight = 0xDDFFAA7D;
+defcolor_cursor = {LIGHT0,LIGHT1};
+defcolor_highlight_cursor_line = 0x22666666; // highlight color of cursor line
+defcolor_highlight = 0x44fb4934; // selection color
+defcolor_at_highlight = 0xDDFFAA7D; // Text color on selection
+defcolor_at_cursor = RED0; // ??
+
+
+//defcolor_text_default = 0xffb99468; // TEXT reddish
+defcolor_text_default = 0xFFD3B58D;
+
 defcolor_comment = GRAY;
-defcolor_comment_pop = {LIGHT1, RED0};
+defcolor_comment_pop = {LIGHT1, ORANGE0};
 defcolor_keyword = YELLOW0;
 defcolor_str_constant = GREEN0;
 defcolor_char_constant = defcolor_str_constant;
@@ -54,19 +64,17 @@ defcolor_float_constant = defcolor_str_constant;
 defcolor_bool_constant = defcolor_str_constant;
 defcolor_include = defcolor_str_constant;
 defcolor_preproc = AQUA0;
-defcolor_special_character = 0xFFFF0000;
-defcolor_ghost_character = 0xFF5B4D3C;
-defcolor_paste = 0xFFFFBB00;
+defcolor_special_character = 0xFFFF0000; // ?? 
+defcolor_ghost_character = 0xFF5B4D3C; // ??
 
+defcolor_paste = 0xFFFFBB00;
 defcolor_undo = 0xFF80005D;
 
-defcolor_highlight_junk = 0x22d3869b;
-defcolor_highlight_white = 0x228f3f71;
+defcolor_highlight_junk = 0x22d3869b; // ?
+defcolor_highlight_white = 0x228f3f71; // ? 
 
-defcolor_bar_active = 0xFFA8A8A8;
-defcolor_base = GRAY;
-defcolor_pop1 = YELLOW0;
-defcolor_pop2 = RED0;
+defcolor_bar_active = 0xFFA8A8A8; // ?
+defcolor_pop2 = RED0; // color of the star which suggests that buffer is not saved
 
 defcolor_back_cycle = {0x0CA00000, 0x0800A000, 0x080000A0, 0x08A0A000};
 defcolor_text_cycle = {0xFFA00000, 0xFF00A000, 0xFF0020B0, 0xFFA0A000};

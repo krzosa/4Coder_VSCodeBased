@@ -3,12 +3,15 @@ struct brush_in_time
     Vec2_i32 p;
     b8 mouse_l;
 };
+
 #define max_size_of_array 10000
 global b32 painter_mode = false;
 global brush_in_time *brush_strokes;
 global i64 brush_strokes_size;
 global i32 brush_size = 20;
 global i32 brush_size_control = 5;
+
+
 function void
 painter_whole_screen_render_caller(Application_Links *app, Frame_Info frame_info){
     if(!painter_mode) return;
@@ -59,10 +62,10 @@ painter_whole_screen_render_caller(Application_Links *app, Frame_Info frame_info
             // Skip if mouse not pressed
             if(brush_strokes[j-1].mouse_l == false || brush_strokes[j].mouse_l == false)
                 continue;
-
+            
             Vec2_i32 minP = brush_strokes[j-1].p;
             Vec2_i32 maxP = brush_strokes[j].p;
-
+            
             // Drawing line algorithm, fill every pixel with a rectangle ! ;> 
             bool steep = false; 
             if (abs(minP.x-maxP.x) < abs(minP.y-maxP.y)) 
@@ -70,7 +73,7 @@ painter_whole_screen_render_caller(Application_Links *app, Frame_Info frame_info
                 i32 temp = minP.x;
                 minP.x = minP.y;
                 minP.y = temp;
-
+                
                 temp = maxP.x;
                 maxP.x = maxP.y;
                 maxP.y = temp;
@@ -83,7 +86,7 @@ painter_whole_screen_render_caller(Application_Links *app, Frame_Info frame_info
                 minP = maxP;
                 maxP = temp;
             }
-
+            
             for(i32 x = minP.x; x < maxP.x; x++)
             {
                 f32 t = (x - minP.x ) / (f32)(maxP.x - minP.x); 
