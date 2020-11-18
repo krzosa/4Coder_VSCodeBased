@@ -52,7 +52,6 @@ CUSTOM_ID( colors, vertical_scope_annotation_highlight );
 #include "todo.cpp"
 #include "search.cpp"
 
-
 function void
 krz_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id,
                   Buffer_ID buffer, Text_Layout_ID text_layout_id,
@@ -95,13 +94,6 @@ krz_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id,
     
     i64 cursor_pos = view_correct_cursor(app, view_id);
     i64 mark_pos = view_correct_mark(app, view_id);
-    
-#if BIG_CURSOR
-    if(cursor_pos == mark_pos)
-        draw_character_block(app, text_layout_id, 
-                             {cursor_pos, cursor_pos + 1}, 0, 
-                             finalize_color(defcolor_cursor, 0));
-#endif
     
 #if HIGHLIGH_SELECTION_MATCH
     Scratch_Block scratch(app);
@@ -198,6 +190,12 @@ krz_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id,
         case FCoderMode_NotepadLike:
         {
             draw_notepad_style_cursor_highlight(app, view_id, buffer, text_layout_id, cursor_roundness);
+#if BIG_CURSOR
+            if(cursor_pos == mark_pos)
+                draw_character_block(app, text_layout_id, 
+                                     {cursor_pos, cursor_pos + 1}, 0, 
+                                     finalize_color(defcolor_cursor, 0));
+#endif
         }break;
     }
     // NOTE(allen): Fade ranges

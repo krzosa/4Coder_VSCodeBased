@@ -212,32 +212,30 @@ CUSTOM_COMMAND_SIG(search_selection_or_identifier)
     View_ID view = get_active_view(app, Access_Always);
 	Buffer_ID buffer = view_get_buffer(app, view, Access_Always);
     
-	i64 cursor_pos = view_get_cursor_pos(app, view);
-	i64 mark_pos = view_get_mark_pos(app, view);
+    selected_lines_info selection = get_selected_lines_info(app, 
+                                                            view, buffer);
     
-	i64 min_pos = Min(cursor_pos, mark_pos);
-	i64 max_pos = Max(cursor_pos, mark_pos);
-    
-    Scratch_Block scratch(app);
-    i64 selection = max_pos - min_pos;
-    if(selection == 0 || selection > max_selection_size)
+    i64 selection_size = selection.max_pos - selection.min_pos;
+    i64 selection_lines = selection.max_line - selection.min_line;
+    if (selection_size < max_selection_size && selection_lines == 0)
     {
-        Range_i64 range = enclose_pos_alpha_numeric_underscore(app, buffer, cursor_pos);
+        Scratch_Block scratch(app);
         
-        String_Const_u8 query = push_buffer_range(app, scratch, buffer, range);
+        Range_i64 range = {};
+        range.start = selection.min_pos;
+        range.end = selection.max_pos;
+        
+        String_Const_u8 query = push_buffer_range(app, scratch, 
+                                                  buffer, range);
         
         krz_isearch_case_mode_aware(app, Scan_Forward, range.first, query);
     }
     else
     {
-        Range_i64 range = {};
-        range.start = min_pos;
-        range.end = max_pos;
-        
-        String_Const_u8 query = push_buffer_range(app, scratch, buffer, range);
-        
-        krz_isearch_case_mode_aware(app, Scan_Forward, range.first, query);
+        krz_isearch_case_mode_aware(app, Scan_Forward, 
+                                    selection.cursor_pos, SCu8());
     }
+    
 }
 
 function void
@@ -343,48 +341,42 @@ CUSTOM_DOC("Queries the user for two strings, and incrementally replaces every o
     }
 }
 
-CUSTOM_COMMAND_SIG(query_replace_selection_or_identifier)
+CUSTOM_COMMAND_SIG(krz_query_replace_selection)
 {
     View_ID view = get_active_view(app, Access_Always);
 	Buffer_ID buffer = view_get_buffer(app, view, Access_Always);
     if(buffer == 0) return;
     
-	i64 cursor_pos = view_get_cursor_pos(app, view);
-	i64 mark_pos = view_get_mark_pos(app, view);
+    selected_lines_info selection = get_selected_lines_info(app, 
+                                                            view, buffer);
     
-	i64 min_pos = Min(cursor_pos, mark_pos);
-	i64 max_pos = Max(cursor_pos, mark_pos);
-    
-    Scratch_Block scratch(app);
-    i64 selection = max_pos - min_pos;
-    
-    if(selection == 0 || selection > max_selection_size)
+    i64 selection_size = selection.max_pos - selection.min_pos;
+    i64 selection_lines = selection.max_line - selection.min_line;
+    if (selection_size < max_selection_size && selection_lines == 0)
     {
-        Range_i64 range = enclose_pos_alpha_numeric_underscore(app, buffer, cursor_pos);
-        String_Const_u8 replace = push_buffer_range(app, scratch, buffer, range);
-        if (replace.size != 0){
-            krz_query_replace_parameter(app, replace, range.min, true);
-        }
-        else{
-            krz_query_replace(app);
-        }
+        Scratch_Block scratch(app);
+        
+        Range_i64 range = {};
+        range.start = selection.min_pos;
+        range.end = selection.max_pos;
+        
+        String_Const_u8 replace = push_buffer_range(app, scratch, 
+                                                    buffer, range);
+        
+        krz_query_replace_parameter(app, replace, range.min, true);
     }
     else
     {
-        Range_i64 range = {};
-        range.start = min_pos;
-        range.end = max_pos;
-        
-        String_Const_u8 replace = push_buffer_range(app, scratch, buffer, range);
-        if (replace.size != 0){
-            krz_query_replace_parameter(app, replace, range.min, true);
-        }
+        krz_query_replace_parameter(app, SCu8(), 
+                                    selection.cursor_pos, true);
     }
     
-    view_set_cursor(app, view, seek_pos(cursor_pos));
+    // TODO: Set cursor based on what was clicked 
+    // escape come back to start of query else stay on current word
+    view_set_cursor(app, view, seek_pos(selection.cursor_pos));
 }
 
-CUSTOM_COMMAND_SIG(list_all_locations_of_identifier_or_selection)
+CUSTOM_COMMAND_SIG(krz_list_all_locations_of_selection)
 {
     View_ID view = get_active_view(app, Access_Always);
     Buffer_ID buffer = view_get_buffer(app, view, Access_Always);
@@ -400,16 +392,8 @@ CUSTOM_COMMAND_SIG(list_all_locations_of_identifier_or_selection)
     
     if(selection == 0)
     {
-        if(range_size(range) == 0)
-        {
-            if(case_sensitive_mode) list_all_locations(app);
-            else list_all_locations_case_insensitive(app);
-        }
-        else
-        {
-            if(case_sensitive_mode) list_all_locations_of_identifier(app);
-            else list_all_locations_of_identifier_case_insensitive(app);
-        } 
+        if(case_sensitive_mode) list_all_locations(app);
+        else list_all_locations_case_insensitive(app);
     }
     else
     {

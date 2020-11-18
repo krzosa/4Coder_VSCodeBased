@@ -1,6 +1,6 @@
 //DARK0H = 0xff1E221E; 
-//DARK0H = 0xFF041818; // JBlow green
-DARK0H	= 0xff1d2021;
+DARK0H = 0xFF041818; // JBlow green
+DARK0H	= 0xff1d2021; // standard BG
 DARK0	= 0xff282828;
 DARK0S	= 0xff32302f;
 DARK1	= 0xff3c3836;
