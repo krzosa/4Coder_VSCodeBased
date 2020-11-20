@@ -39,6 +39,7 @@ CUSTOM_ID( colors, primitive_highlight_macro );
 CUSTOM_ID( colors, primitive_highlight_4coder_command );
 CUSTOM_ID( colors, vertical_scope_annotation_text );
 CUSTOM_ID( colors, vertical_scope_annotation_highlight );
+CUSTOM_ID( colors, compilation_buffer_color );
 
 #if !defined(META_PASS)
 #include "generated/managed_id_metadata.cpp"
@@ -678,9 +679,19 @@ krz_draw_file_bar(Application_Links *app, View_ID view_id, Buffer_ID buffer, Fac
 }
 
 function Rect_f32
-krz_draw_background_and_margin(Application_Links *app, View_ID view, b32 is_active_view){
+krz_draw_background_and_margin(Application_Links *app, View_ID view, 
+                               Buffer_ID buffer, b32 is_active_view){
     FColor margin_color = get_panel_margin_color(is_active_view?UIHighlight_Active:UIHighlight_None);
-    return(draw_background_and_margin(app, view, margin_color, fcolor_id(defcolor_back), margin_width));
+    
+    Scratch_Block scratch(app);
+    String_Const_u8 string = push_buffer_base_name(app, scratch, buffer);
+    
+    b32 matches = string_match(string, string_u8_litexpr("*compilation*"));
+    
+    FColor back = fcolor_id(defcolor_back);
+    if(matches) back = fcolor_id(compilation_buffer_color);
+    
+    return(draw_background_and_margin(app, view, margin_color, back, margin_width));
 }
 
 function void
@@ -688,11 +699,12 @@ krz_render_caller(Application_Links *app, Frame_Info frame_info, View_ID view_id
     ProfileScope(app, "default render caller");
     View_ID active_view = get_active_view(app, Access_Always);
     b32 is_active_view = (active_view == view_id);
+    Buffer_ID buffer = view_get_buffer(app, view_id, Access_Always);
     
-    Rect_f32 region = krz_draw_background_and_margin(app, view_id, is_active_view);
+    Rect_f32 region = krz_draw_background_and_margin(app, view_id, buffer, is_active_view);
     Rect_f32 prev_clip = draw_set_clip(app, region);
     
-    Buffer_ID buffer = view_get_buffer(app, view_id, Access_Always);
+    
     Face_ID face_id = get_face_id(app, buffer);
     Face_Metrics face_metrics = get_face_metrics(app, face_id);
     f32 line_height = face_metrics.line_height;

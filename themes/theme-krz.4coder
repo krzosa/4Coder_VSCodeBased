@@ -1,39 +1,39 @@
-//DARK0H = 0xff1E221E; 
-//DARK0H = 0xFF041818; // JBlow green
-DARK0H	= 0xff1d2021;
-DARK0	= 0xff282828;
-DARK0S	= 0xff32302f;
-DARK1	= 0xff3c3836;
+DARKJBlow = 0xFF041818; 
+DARK0	= 0xff111111;
+DARK1	= 0xff222222;
 DARK2	= 0xff504945;
 DARK3	= 0xff665c54;
 DARK4	= 0xff7c6f64;
-LIGHT0H	= 0xfff9f5d7;
+
+GRAY	= 0xff928374;
+
 LIGHT0	= 0xfffbf1c7;
-LIGHT0S	= 0xfff2e5bc;
 LIGHT1	= 0xffebdbb2;
 LIGHT2	= 0xffd5c4a1;
 LIGHT3	= 0xffbdae93;
 LIGHT4	= 0xffa89984;
-GRAY	= 0xff928374;
-RED0	= 0xfffb4934;
-RED1	= 0xff9d0006;
-GREEN0	= 0xffb8bb26;
-GREEN1	= 0xff79740e;
-YELLOW0	= 0xfffabd2f;
-YELLOW1	= 0xffb57614;
-BLUE0	= 0xff83a598;
-BLUE1	= 0xff076678;
-PURPLE0	= 0xffd3869b;
-PURPLE1	= 0xff8f3f71;
-AQUA0	= 0xff8ec07c;
-AQUA1	= 0xff427b58;
-ORANGE0	= 0xfffe8019;
-ORANGE1	= 0xffaf3a03;
 
-defcolor_back = DARK0H; // buffer back, bar with buffer info, buffer margin
-defcolor_bar = DARK0H;
+PINK = 0xfff5487f;
+BLUE	= 0xff83a598;
+AQUA	= 0xff8ec07c;
+PURPLE	= 0xffd3869b;
+GREEN	= 0xffb8bb26;
+RED	= 0xfffb4934;
+ORANGE	= 0xfffe8019;
+YELLOW	= 0xfffabd2f;
+CREAM = 0xFFEBA991;
+
+BG_COMPLIMENT = 0xFFD3B58D;
+PRIMARY = ORANGE;
+SECONDARY = LIGHT0;
+TERTIARY = YELLOW;
+FOURTH = CREAM;
+
+compilation_buffer_color = DARK0;
+defcolor_back = DARK1; // buffer back, bar with buffer info, buffer margin
+defcolor_bar = DARK1;
 defcolor_base = GRAY; // Buffer bar(top or bottom) text
-defcolor_margin = DARK0H;
+defcolor_margin = DARK1;
 defcolor_margin_hover = 0xFF333333;
 defcolor_margin_active = 0xFF404040;
 
@@ -41,7 +41,7 @@ defcolor_margin_active = 0xFF404040;
 defcolor_list_item = {defcolor_margin, defcolor_back};
 defcolor_list_item_hover = {defcolor_margin_hover, defcolor_margin};
 defcolor_list_item_active = {defcolor_margin_active, defcolor_margin_active};
-defcolor_pop1 = YELLOW0; // lister text that suggest what kind of lister it is
+defcolor_pop1 = TERTIARY; // lister text that suggest what kind of lister it is
 
 defcolor_mark = 0xffffffff;
 defcolor_cursor = {LIGHT0,LIGHT1};
@@ -52,18 +52,18 @@ defcolor_at_cursor = RED0; // ??
 
 
 //defcolor_text_default = 0xffb99468; // TEXT reddish
-defcolor_text_default = 0xFFD3B58D;
+defcolor_text_default = BG_COMPLIMENT;
 
 defcolor_comment = GRAY;
 defcolor_comment_pop = {LIGHT1, ORANGE0};
-defcolor_keyword = YELLOW0;
-defcolor_str_constant = GREEN0;
+defcolor_keyword = PRIMARY;
+defcolor_str_constant = FOURTH;
 defcolor_char_constant = defcolor_str_constant;
 defcolor_int_constant = defcolor_str_constant;
 defcolor_float_constant = defcolor_str_constant;
 defcolor_bool_constant = defcolor_str_constant;
 defcolor_include = defcolor_str_constant;
-defcolor_preproc = AQUA0;
+defcolor_preproc = SECONDARY;
 defcolor_special_character = 0xFFFF0000; // ?? 
 defcolor_ghost_character = 0xFF5B4D3C; // ??
 
@@ -74,7 +74,7 @@ defcolor_highlight_junk = 0x22d3869b; // ?
 defcolor_highlight_white = 0x228f3f71; // ? 
 
 defcolor_bar_active = 0xFFA8A8A8; // ?
-defcolor_pop2 = RED0; // color of the star which suggests that buffer is not saved
+defcolor_pop2 = PRIMARY; // color of the star which suggests that buffer is not saved
 
 defcolor_back_cycle = {0x0CA00000, 0x0800A000, 0x080000A0, 0x08A0A000};
 defcolor_text_cycle = {0xFFA00000, 0xFF00A000, 0xFF0020B0, 0xFFA0A000};
@@ -84,8 +84,8 @@ defcolor_line_numbers_text = defcolor_base;
 
 vertical_scope_annotation_text = DARK2;
 vertical_scope_annotation_highlight = DARK4;
-primitive_highlight_type = YELLOW0;
-primitive_highlight_function = AQUA0;
-primitive_highlight_macro = BLUE0;
-primitive_highlight_4coder_command = ORANGE0;
+primitive_highlight_type = PRIMARY;
+primitive_highlight_function = SECONDARY;
+primitive_highlight_macro = TERTIARY;
+primitive_highlight_4coder_command = TERTIARY;
 selection_match_highlight = 0x55076678;
