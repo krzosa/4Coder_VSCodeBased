@@ -146,10 +146,9 @@ Bind(duplicate_multiple_lines_up,              KeyCode_Up, KeyCode_Shift, KeyCod
 Bind(search_selection_or_identifier,           KeyCode_F, KeyCode_Control);
 Bind(search,                           KeyCode_F, KeyCode_Shift, KeyCode_Control);
 
-Bind(list_all_locations_of_identifier_or_selection, KeyCode_F, KeyCode_Alt);
-Bind(list_all_locations, KeyCode_F, KeyCode_Alt, KeyCode_Shift);
+Bind(krz_list_all_locations_of_selection, KeyCode_F, KeyCode_Alt);
 
-Bind(query_replace_selection_or_identifier,  KeyCode_D, KeyCode_Control);
+Bind(krz_query_replace_selection,  KeyCode_D, KeyCode_Control);
 Bind(krz_replace_in_all_buffers,  KeyCode_D, KeyCode_Alt);
 Bind(center_view,  KeyCode_4, KeyCode_Control);
 
