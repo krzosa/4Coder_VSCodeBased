@@ -6,6 +6,7 @@ backup/
 *.pdb
 *.exe
 *.rdbg
+*.ilk
 
 project.4coder
 build.bat
