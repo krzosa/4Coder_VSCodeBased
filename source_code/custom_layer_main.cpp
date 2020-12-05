@@ -6,10 +6,9 @@
 *
 *   TODO:
 *   QueryReplace in all buffers where it asks you about every replace
-    *   Some ways to navigate through the mess
-    *   Fix move lines at the edge of buffer
-    *   find all @ find all TODOs etc.
-    *   Close lister with control W
+*   Fix move lines at the edge of buffer
+*   find all @ find all TODOs etc.
+*   Close lister with control W
 *
 ************************************************************************************/
 
@@ -23,12 +22,9 @@
 
 #include "4coder_default_include.cpp"
 
-// NOTE(allen): Users can declare their own managed IDs here.
-// function void vertical_scope_annotation_draw( Application_Links *app, View_ID view, Buffer_ID buffer, Text_Layout_ID text_layout_id, u32 flags );
-
 global bool case_sensitive_mode = false;
 global bool is_fullscreen_mode;
-global f32 margin_width = 0.f;
+global f32 margin_width = 1.f;
 global i32 max_selection_size = 128;
 
 CUSTOM_ID( command_map, mapid_krz_mode );
@@ -53,6 +49,127 @@ CUSTOM_ID( colors, compilation_buffer_color );
 #include "todo.cpp"
 #include "search.cpp"
 
+static void
+F4_RenderErrorAnnotations(Application_Links *app, Buffer_ID buffer,
+                          Text_Layout_ID text_layout_id,
+                          Buffer_ID jump_buffer)
+{
+    ProfileScope(app, "[Fleury] Error Annotations");
+    
+    Heap *heap = &global_heap;
+    Scratch_Block scratch(app);
+    
+    Locked_Jump_State jump_state = {};
+    {
+        ProfileScope(app, "[Fleury] Error Annotations (Get Locked Jump State)");
+        jump_state = get_locked_jump_state(app, heap);
+    }
+    
+    Face_ID face = get_face_id(app, buffer);
+    Face_Metrics metrics = get_face_metrics(app, face);
+    
+    if(jump_buffer != 0 && jump_state.view != 0)
+    {
+        Managed_Scope buffer_scopes[2];
+        {
+            ProfileScope(app, "[Fleury] Error Annotations (Buffer Get Managed Scope)");
+            buffer_scopes[0] = buffer_get_managed_scope(app, jump_buffer);
+            buffer_scopes[1] = buffer_get_managed_scope(app, buffer);
+        }
+        
+        Managed_Scope comp_scope = 0;
+        {
+            ProfileScope(app, "[Fleury] Error Annotations (Get Managed Scope)");
+            comp_scope = get_managed_scope_with_multiple_dependencies(app, buffer_scopes, ArrayCount(buffer_scopes));
+        }
+        
+        Managed_Object *buffer_markers_object = 0;
+        {
+            ProfileScope(app, "[Fleury] Error Annotations (Scope Attachment)");
+            buffer_markers_object = scope_attachment(app, comp_scope, sticky_jump_marker_handle, Managed_Object);
+        }
+        
+        // NOTE(rjf): Get buffer markers (locations where jumps point at).
+        i32 buffer_marker_count = 0;
+        Marker *buffer_markers = 0;
+        {
+            ProfileScope(app, "[Fleury] Error Annotations (Load Managed Object Data)");
+            buffer_marker_count = managed_object_get_item_count(app, *buffer_markers_object);
+            buffer_markers = push_array(scratch, Marker, buffer_marker_count);
+            managed_object_load_data(app, *buffer_markers_object, 0, buffer_marker_count, buffer_markers);
+        }
+        
+        i64 last_line = -1;
+        
+        for(i32 i = 0; i < buffer_marker_count; i += 1)
+        {
+            ProfileScope(app, "[Fleury] Error Annotations (Buffer Loop)");
+            
+            i64 jump_line_number = get_line_from_list(app, jump_state.list, i);
+            i64 code_line_number = get_line_number_from_pos(app, buffer, buffer_markers[i].pos);
+            
+            if(code_line_number != last_line)
+            {
+                ProfileScope(app, "[Fleury] Error Annotations (Jump Line)");
+                
+                String_Const_u8 jump_line = push_buffer_line(app, scratch, jump_buffer, jump_line_number);
+                
+                // NOTE(rjf): Remove file part of jump line.
+                {
+                    u64 index = string_find_first(jump_line, string_u8_litexpr("error"), StringMatch_CaseInsensitive);
+                    if(index == jump_line.size)
+                    {
+                        index = string_find_first(jump_line, string_u8_litexpr("warning"), StringMatch_CaseInsensitive);
+                        if(index == jump_line.size)
+                        {
+                            index = 0;
+                        }
+                    }
+                    jump_line.str += index;
+                    jump_line.size -= index;
+                }
+                
+                // NOTE(rjf): Render annotation.
+                {
+                    Range_i64 line_range = Ii64(code_line_number);
+                    Range_f32 y1 = text_layout_line_on_screen(app, text_layout_id, line_range.min);
+                    Range_f32 y2 = text_layout_line_on_screen(app, text_layout_id, line_range.max);
+                    Range_f32 y = range_union(y1, y2);
+                    Rect_f32 last_character_on_line_rect =
+                        text_layout_character_on_screen(app, text_layout_id, get_line_end_pos(app, buffer, code_line_number)-1);
+                    
+                    if(range_size(y) > 0.f)
+                    {
+                        Rect_f32 region = text_layout_region(app, text_layout_id);
+                        Vec2_f32 draw_position =
+                        {
+                            region.x1 - metrics.max_advance*jump_line.size -
+                                (y.max-y.min)/2 - metrics.line_height/2,
+                            y.min + (y.max-y.min)/2 - metrics.line_height/2,
+                        };
+                        
+                        if(draw_position.x < last_character_on_line_rect.x1 + 30)
+                        {
+                            draw_position.x = last_character_on_line_rect.x1 + 30;
+                        }
+                        
+                        draw_string(app, face, jump_line, draw_position, 0xffff0000);
+                        
+                        // Mouse_State mouse_state = get_mouse_state(app);
+                        // if(mouse_state.x >= region.x0 && mouse_state.x <= region.x1 &&
+                        //    mouse_state.y >= y.min && mouse_state.y <= y.max)
+                        // {
+                        //     F4_PushTooltip(jump_line, 0xffff0000);
+                        // }
+                    }
+                }
+            }
+            
+            last_line = code_line_number;
+        }
+    }
+}
+
 function void
 krz_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id,
                   Buffer_ID buffer, Text_Layout_ID text_layout_id,
@@ -70,6 +187,13 @@ krz_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id,
     f32 cursor_roundness = metrics.normal_advance*global_config.cursor_roundness;
     f32 mark_thickness = (f32)global_config.mark_thickness;
     
+    // NOTE(rjf): Error annotations
+    {
+        String_Const_u8 name = string_u8_litexpr("*compilation*");
+        Buffer_ID compilation_buffer = get_buffer_by_name(app, name, Access_Always);
+        F4_RenderErrorAnnotations(app, buffer, text_layout_id, compilation_buffer);
+    }
+    
     // NOTE(allen): Token colorizing
     Token_Array token_array = get_token_array_from_buffer(app, buffer);
     if (token_array.tokens != 0){
@@ -79,8 +203,6 @@ krz_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id,
         if (global_config.use_comment_keyword){
             Comment_Highlight_Pair pairs[] = {
                 {string_u8_litexpr("NOTE"), finalize_color(defcolor_comment_pop, 0)},
-                {string_u8_litexpr("@return"), finalize_color(defcolor_comment_pop, 0)},
-                {string_u8_litexpr("@arguments"), finalize_color(defcolor_comment_pop, 0)},
                 {string_u8_litexpr("TODO"), finalize_color(defcolor_comment_pop, 1)},
                 {string_u8_litexpr("WARNING"), finalize_color(defcolor_comment_pop, 1)},
                 {string_u8_litexpr("FIXME"), finalize_color(defcolor_comment_pop, 1)},
@@ -519,30 +641,6 @@ CUSTOM_COMMAND_SIG(krz_move_left_whitespace_boundary_or_line_boundary)
     Scratch_Block scratch(app);
     current_view_scan_move(app, Scan_Backward,
                            push_boundary_list(scratch, boundary_non_whitespace, boundary_line));
-}
-
-CUSTOM_COMMAND_SIG(krz_replace_in_all_buffers)
-CUSTOM_DOC("Queries the user for a needle and string. Replaces all occurences of needle with string in all editable buffers.")
-{
-    global_history_edit_group_begin(app);
-    
-    Scratch_Block scratch(app);
-    Query_Bar_Group group(app);
-    String_Pair pair = query_user_replace_pair(app, scratch);
-    Buffer_ID buffer = get_buffer_next(app, 0, Access_ReadWriteVisible);
-    for (;;){
-        // NOTE: bug was here in original, no check if valid
-        if(buffer != 0 && pair.valid){
-            
-            buffer = get_buffer_next(app, buffer, Access_ReadWriteVisible);
-            Range_i64 range = buffer_range(app, buffer);
-            replace_in_range(app, buffer, range, pair.a, pair.b);
-            
-        }
-        else break;
-    }
-    
-    global_history_edit_group_end(app);
 }
 
 // Modified for F5 to F8 keys

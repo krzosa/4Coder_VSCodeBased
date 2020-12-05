@@ -149,7 +149,7 @@ Bind(search,                           KeyCode_F, KeyCode_Shift, KeyCode_Control
 Bind(krz_list_all_locations_of_selection, KeyCode_F, KeyCode_Alt);
 
 Bind(krz_query_replace_selection,  KeyCode_D, KeyCode_Control);
-Bind(krz_replace_in_all_buffers,  KeyCode_D, KeyCode_Alt);
+Bind(replace_in_all_buffers,  KeyCode_D, KeyCode_Alt);
 Bind(center_view,  KeyCode_4, KeyCode_Control);
 
 Bind(list_all_functions_all_buffers_lister, KeyCode_E, KeyCode_Alt);
